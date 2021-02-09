@@ -73,6 +73,7 @@ FLOWS = [
     "forked_daapd",
     "foscam",
     "freebox",
+    "freedompro",
     "fritzbox",
     "fritzbox_callmonitor",
     "garmin_connect",
