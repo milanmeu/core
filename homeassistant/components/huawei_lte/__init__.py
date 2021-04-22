@@ -119,7 +119,7 @@ CONFIG_SCHEMA = vol.Schema(
 
 SERVICE_SCHEMA = vol.Schema({vol.Optional(CONF_URL): cv.url})
 
-CONFIG_ENTRY_PLATFORMS = (
+PLATFORMS = (
     BINARY_SENSOR_DOMAIN,
     DEVICE_TRACKER_DOMAIN,
     SENSOR_DOMAIN,
@@ -420,9 +420,9 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
     )
 
     # Forward config entry setup to platforms
-    for domain in CONFIG_ENTRY_PLATFORMS:
+    for platform in PLATFORMS:
         hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, domain)
+            hass.config_entries.async_forward_entry_setup(config_entry, platform)
         )
     # Notify doesn't support config entry setup yet, load with discovery for now
     await discovery.async_load_platform(
@@ -464,8 +464,8 @@ async def async_unload_entry(
     """Unload config entry."""
 
     # Forward config entry unload to platforms
-    for domain in CONFIG_ENTRY_PLATFORMS:
-        await hass.config_entries.async_forward_entry_unload(config_entry, domain)
+    for platform in PLATFORMS:
+        await hass.config_entries.async_forward_entry_unload(config_entry, platform)
 
     # Forget about the router and invoke its cleanup
     router = hass.data[DOMAIN].routers.pop(config_entry.data[CONF_URL])

@@ -16,7 +16,7 @@ CONF_WALLETS = "wallets"
 
 DOMAIN = "iota"
 
-IOTA_PLATFORMS = ["sensor"]
+PLATFORMS = ["sensor"]
 
 SCAN_INTERVAL = timedelta(minutes=10)
 
@@ -45,7 +45,7 @@ def setup(hass, config):
     """Set up the IOTA component."""
     iota_config = config[DOMAIN]
 
-    for platform in IOTA_PLATFORMS:
+    for platform in PLATFORMS:
         load_platform(hass, platform, DOMAIN, iota_config, config)
 
     return True

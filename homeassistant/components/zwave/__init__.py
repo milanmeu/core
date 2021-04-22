@@ -1059,9 +1059,9 @@ async def async_setup_entry(hass, config_entry):
 
     hass.services.async_register(DOMAIN, const.SERVICE_START_NETWORK, start_zwave)
 
-    for entry_component in PLATFORMS:
+    for platform in PLATFORMS:
         hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, entry_component)
+            hass.config_entries.async_forward_entry_setup(config_entry, platform)
         )
 
     return True

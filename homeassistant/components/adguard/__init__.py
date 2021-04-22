@@ -126,8 +126,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_remove(DOMAIN, SERVICE_DISABLE_URL)
     hass.services.async_remove(DOMAIN, SERVICE_REFRESH)
 
-    for component in PLATFORMS:
-        await hass.config_entries.async_forward_entry_unload(entry, component)
+    for platform in PLATFORMS:
+        await hass.config_entries.async_forward_entry_unload(entry, platform)
 
     del hass.data[DOMAIN]
 
