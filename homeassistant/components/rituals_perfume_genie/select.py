@@ -10,7 +10,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import RitualsDataUpdateCoordinator
-from .const import ATTRIBUTES, COORDINATORS, DEVICES, DOMAIN, ROOM
+from .const import (
+    ATTRIBUTES,
+    COORDINATORS,
+    DEVICES,
+    DOMAIN,
+    ROOM,
+    ROOM_ENTITY_DEVICES,
+    CONFIGURED_DEVICES,
+)
 from .entity import DiffuserEntity
 
 ROOM_SIZE_SUFFIX = " Room Size"
@@ -25,9 +33,17 @@ async def async_setup_entry(
     diffusers = hass.data[DOMAIN][config_entry.entry_id][DEVICES]
     coordinators = hass.data[DOMAIN][config_entry.entry_id][COORDINATORS]
     entities: list[DiffuserEntity] = []
+    configured_devices = config_entry.options.get(CONFIGURED_DEVICES, [])
+    room_entity_devices = config_entry.options.get(ROOM_ENTITY_DEVICES, [])
     for hublot, diffuser in diffusers.items():
-        coordinator = coordinators[hublot]
-        entities.append(DiffuserRoomSize(diffuser, coordinator))
+        if (
+            hublot in room_entity_devices
+            or hublot not in configured_devices
+            and diffuser.has_battery
+        ):
+            # The room size entity is enabled by default for new devices with a battery
+            coordinator = coordinators[hublot]
+            entities.append(DiffuserRoomSize(diffuser, coordinator))
 
     async_add_entities(entities)
 

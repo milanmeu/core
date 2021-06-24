@@ -17,5 +17,14 @@
                 "title": "Connect to your Rituals account"
             }
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "room_entity_devices": "Diffusers with room size entity"
+                }
+            }
+        }
     }
 }
