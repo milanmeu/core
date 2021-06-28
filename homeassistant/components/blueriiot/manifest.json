@@ -1,0 +1,11 @@
+{
+  "domain": "blueriiot",
+  "name": "Blueriiot",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/blueriiot",
+  "dependencies": ["webhook"],
+  "codeowners": [
+    "@milanmeu"
+  ],
+  "iot_class": "cloud_push"
+}
