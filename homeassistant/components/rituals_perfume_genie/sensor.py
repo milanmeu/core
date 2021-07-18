@@ -72,7 +72,7 @@ class DiffuserFillSensor(DiffuserEntity):
 
         self._attr_icon = "mdi:beaker-question"
         if diffuser.has_cartridge:
-            self.attr_icon = "mdi:beaker"
+            self._attr_icon = "mdi:beaker"
 
     @property
     def state(self) -> str:
