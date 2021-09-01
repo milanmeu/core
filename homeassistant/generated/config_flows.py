@@ -174,6 +174,7 @@ FLOWS = [
     "mqtt",
     "mullvad",
     "mutesync",
+    "myfox",
     "myq",
     "mysensors",
     "nam",

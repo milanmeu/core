@@ -142,6 +142,9 @@ aiomodernforms==0.1.8
 # homeassistant.components.yamaha_musiccast
 aiomusiccast==0.9.1
 
+# homeassistant.components.myfox
+aiomyfox==0.0.1
+
 # homeassistant.components.notion
 aionotion==3.0.2
 
