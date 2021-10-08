@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
@@ -105,6 +105,6 @@ class SENZClimate(CoordinatorEntity, ClimateEntity):
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
         _LOGGER.warning(kwargs)
-        temp = cast(float, kwargs[ATTR_TEMPERATURE])
+        temp: float = kwargs[ATTR_TEMPERATURE]
         await self._thermostat.manual(temp)
         await self.coordinator.async_request_refresh()
