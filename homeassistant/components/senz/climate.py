@@ -46,7 +46,7 @@ class SENZClimate(CoordinatorEntity, ClimateEntity):
     _attr_precision = PRECISION_TENTHS
     _attr_hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_AUTO]
     _attr_supported_features = SUPPORT_TARGET_TEMPERATURE
-    _attr_max_temp = 40
+    _attr_max_temp = 35
     _attr_min_temp = 5
 
     def __init__(
