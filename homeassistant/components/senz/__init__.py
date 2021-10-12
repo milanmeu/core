@@ -5,20 +5,20 @@ from datetime import timedelta
 import logging
 from typing import Any
 
-from .aiosenz import OAUTH2_AUTHORIZE, OAUTH2_TOKEN, Thermostat, SenzAPI
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import (
-    httpx_client,
     config_entry_oauth2_flow,
     config_validation as cv,
+    httpx_client,
 )
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from . import config_flow
+from .aiosenz import OAUTH2_AUTHORIZE, OAUTH2_TOKEN, SENZAPI, Thermostat
 from .api import SENZConfigEntryAuth
 from .const import DOMAIN
 
@@ -72,7 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     session = config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation)
     auth = SENZConfigEntryAuth(httpx_client.get_async_client(hass), session)
-    senz_api = SenzAPI(auth)
+    senz_api = SENZAPI(auth)
 
     async def update_thermostats() -> dict[str, Thermostat]:
         """Fetch SENZ thermostats data."""

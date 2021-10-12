@@ -1,4 +1,4 @@
-"""Senz API."""
+"""SENZ API."""
 from __future__ import annotations
 
 from .account import Account
@@ -6,8 +6,8 @@ from .auth import AbstractSENZAuth
 from .thermostat import Thermostat
 
 
-class SenzAPI:
-    """Class for the Senz API."""
+class SENZAPI:
+    """Class for the SENZ API."""
 
     def __init__(self, auth: AbstractSENZAuth):
         """Initialize the API and store the auth so we can make requests."""
@@ -26,7 +26,7 @@ class SenzAPI:
         ]
 
     async def get_thermostat(self, serial_number: str) -> Thermostat:
-        """Return the thermostats."""
+        """Return the thermostat."""
         resp = await self.auth._request("get", f"Thermostat/{serial_number}")
         resp.raise_for_status()
         return Thermostat((resp.json()), self.auth)

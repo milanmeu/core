@@ -1,0 +1,26 @@
+set_climate_timer:
+  name: Set climate timer
+  description: Set climate entities to hold for a set time.
+  target:
+    entity:
+      integration: senz
+      domain: climate
+  fields:
+    time_period:
+      name: Time period
+      description: Set the time period for the hold mode.
+      required: true
+      example: "01:30:00"
+      default: "01:00:00"
+      selector:
+        text:
+    temperature:
+      name: Temperature
+      description: Temperature to set climate entity to
+      required: false
+      selector:
+        number:
+          min: 5
+          max: 35
+          step: 0.5
+          unit_of_measurement: '°'

@@ -49,7 +49,7 @@ class AbstractSENZAuth(ABC):
 
 
 class SENZAuth(AbstractSENZAuth):
-    """Class with OAuth2 token handler to make authenticated requests to the SENZ RestAPI."""
+    """Class with OAuth2 token handler to make authenticated requests to the SENZ API."""
 
     def __init__(
         self,

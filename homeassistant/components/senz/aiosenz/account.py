@@ -1,9 +1,9 @@
-"""Senz account."""
+"""SENZ account."""
 from .typing import AccountModel
 
 
 class Account:
-    """Senz account."""
+    """SENZ account."""
 
     def __init__(self, data: AccountModel):
         """Initialize the API and store the auth so we can make requests."""

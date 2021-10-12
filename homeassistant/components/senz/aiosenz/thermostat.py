@@ -1,4 +1,4 @@
-"""Senz Theromstat."""
+"""SENZ theromstat."""
 from __future__ import annotations
 
 from .auth import AbstractSENZAuth

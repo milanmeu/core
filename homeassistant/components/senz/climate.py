@@ -4,6 +4,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import voluptuous as vol
+
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
@@ -14,6 +16,7 @@ from homeassistant.components.senz.aiosenz.thermostat import MODE_AUTO
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, PRECISION_TENTHS, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
@@ -26,6 +29,16 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+SERVICE_CLIMATE_TIMER = "set_climate_timer"
+ATTR_TIME_PERIOD = "time_period"
+
+CLIMATE_TIMER_SCHEMA = {
+    vol.Required(ATTR_TIME_PERIOD, default="01:00:00"): vol.All(
+        cv.time_period, cv.positive_timedelta, lambda td: td.total_seconds()
+    ),
+    vol.Required(ATTR_TEMPERATURE): vol.Coerce(float),
+}
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -34,6 +47,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the SENZ climate entities from a config entry."""
     coordinator: DataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service(
+        SERVICE_CLIMATE_TIMER,
+        CLIMATE_TIMER_SCHEMA,
+        "set_timer",
+    )
+
     async_add_entities(
         SENZClimate(thermostat, coordinator) for thermostat in coordinator.data.values()
     )
@@ -108,3 +129,8 @@ class SENZClimate(CoordinatorEntity, ClimateEntity):
         temp: float = kwargs[ATTR_TEMPERATURE]
         await self._thermostat.manual(temp)
         await self.coordinator.async_request_refresh()
+
+    def set_timer(self, time_period: Any, temperature: float | None = None) -> None:
+        """Set the timer on the entity, and temperature if supported."""
+        _LOGGER.warning(time_period, temperature)
+        self._thermostat.hold(temperature, time_period)
