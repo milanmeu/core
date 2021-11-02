@@ -1,10 +1,11 @@
-"""The nVent Raychem SENZ integration."""
+"""The nVent RAYCHEM SENZ integration."""
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
-from typing import Any
+from typing import Any, Dict
 
+from httpx import RequestError
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -15,7 +16,7 @@ from homeassistant.helpers import (
     config_validation as cv,
     httpx_client,
 )
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from . import config_flow
 from .aiosenz import OAUTH2_AUTHORIZE, OAUTH2_TOKEN, SENZAPI, Thermostat
@@ -39,6 +40,8 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 PLATFORMS = ["climate"]
+
+SENZDataUpdateCoordinator = DataUpdateCoordinator[Dict[str, Thermostat]]
 
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
@@ -76,12 +79,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async def update_thermostats() -> dict[str, Thermostat]:
         """Fetch SENZ thermostats data."""
-        thermostats = await senz_api.get_thermostats()
+        try:
+            thermostats = await senz_api.get_thermostats()
+        except RequestError as err:
+            raise UpdateFailed from err
         return {thermostat.serial_number: thermostat for thermostat in thermostats}
 
     account = await senz_api.get_account()
 
-    coordinator = DataUpdateCoordinator(
+    coordinator = SENZDataUpdateCoordinator(
         hass,
         _LOGGER,
         name=account.username,

@@ -1,5 +1,24 @@
+#    Copyright 2021, Milan Meulemans
+#
+#    This file is part of aiosenz.
+#
+#    aiosenz is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Lesser General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    aiosenz is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Lesser General Public License for more details.
+#
+#    You should have received a copy of the GNU Lesser General Public License
+#    along with aiosenz.  If not, see <https://www.gnu.org/licenses/>.
+
 """SENZ theromstat."""
 from __future__ import annotations
+
+from datetime import datetime
 
 from .auth import AbstractSENZAuth
 from .typing import ThermostatModel
@@ -93,14 +112,14 @@ class Thermostat:
     async def hold(
         self,
         temperature: float | None = None,
-        hold_until: str | None = None,
+        hold_until: datetime | None = None,
         absolute: bool = True,
     ) -> None:
         """Set thermostat mode to Hold."""
         data: dict[str, str | int] = {"serialNumber": self.serial_number}
 
         if hold_until is not None:
-            data["holdUntil"] = hold_until
+            data["holdUntil"] = hold_until.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         if temperature is not None:
             data["temperature"] = int(temperature * 100)

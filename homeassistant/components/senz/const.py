@@ -1,3 +1,3 @@
-"""Constants for the SENZ integration."""
+"""Constants for the nVent RAYCHEM SENZ integration."""
 
 DOMAIN = "senz"

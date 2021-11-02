@@ -1,6 +1,7 @@
-"""SENZ climate platform."""
+"""nVent RAYCHEM SENZ climate platform."""
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import logging
 from typing import Any
 
@@ -19,24 +20,20 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import SENZDataUpdateCoordinator
 from .aiosenz import Thermostat
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+ATTR_DATETIME = "datetime"
 SERVICE_CLIMATE_TIMER = "set_climate_timer"
-ATTR_TIME_PERIOD = "time_period"
 
 CLIMATE_TIMER_SCHEMA = {
-    vol.Required(ATTR_TIME_PERIOD, default="01:00:00"): vol.All(
-        cv.time_period, cv.positive_timedelta, lambda td: td.total_seconds()
-    ),
-    vol.Required(ATTR_TEMPERATURE): vol.Coerce(float),
+    vol.Required(ATTR_DATETIME): cv.datetime,
+    vol.Optional(ATTR_TEMPERATURE): vol.Coerce(float),
 }
 
 
@@ -46,13 +43,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the SENZ climate entities from a config entry."""
-    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: SENZDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     platform = entity_platform.async_get_current_platform()
     platform.async_register_entity_service(
         SERVICE_CLIMATE_TIMER,
         CLIMATE_TIMER_SCHEMA,
-        "set_timer",
+        "async_set_timer",
     )
 
     async_add_entities(
@@ -73,7 +70,7 @@ class SENZClimate(CoordinatorEntity, ClimateEntity):
     def __init__(
         self,
         thermostat: Thermostat,
-        coordinator: DataUpdateCoordinator,
+        coordinator: SENZDataUpdateCoordinator,
     ) -> None:
         """Init SENZ climate."""
         super().__init__(coordinator)
@@ -130,7 +127,12 @@ class SENZClimate(CoordinatorEntity, ClimateEntity):
         await self._thermostat.manual(temp)
         await self.coordinator.async_request_refresh()
 
-    def set_timer(self, time_period: Any, temperature: float | None = None) -> None:
-        """Set the timer on the entity, and temperature if supported."""
-        _LOGGER.warning(time_period, temperature)
-        self._thermostat.hold(temperature, time_period)
+    async def async_set_timer(
+        self, datetime: datetime, temperature: float | None = None
+    ) -> None:
+        """Set thermostat to specified or current temperature for a time period."""
+        print(datetime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+        _LOGGER.warning(datetime)
+        dt = datetime.replace(tzinfo=timezone.utc)
+        print(dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+        await self._thermostat.hold(temperature, datetime)
