@@ -13,7 +13,6 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     SUPPORT_TARGET_TEMPERATURE,
 )
-from homeassistant.components.senz.aiosenz.thermostat import MODE_AUTO
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, PRECISION_TENTHS, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant, callback
@@ -23,7 +22,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import SENZDataUpdateCoordinator
-from .aiosenz import Thermostat
+from .aiosenz import MODE_AUTO, Thermostat
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
