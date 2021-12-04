@@ -2,7 +2,8 @@
 from unittest.mock import patch
 
 from homeassistant import config_entries, setup
-from homeassistant.components.senz.const import DOMAIN, OAUTH2_AUTHORIZE, OAUTH2_TOKEN
+from homeassistant.components.senz.aiosenz import OAUTH2_AUTHORIZE, OAUTH2_TOKEN
+from homeassistant.components.senz.const import DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
 
@@ -12,7 +13,7 @@ CLIENT_SECRET = "5678"
 
 async def test_full_flow(
     hass: HomeAssistant,
-    aiohttp_client,
+    hass_client_no_auth,
     aioclient_mock,
     current_request_with_host,
 ) -> None:
@@ -40,10 +41,10 @@ async def test_full_flow(
     assert result["url"] == (
         f"{OAUTH2_AUTHORIZE}?response_type=code&client_id={CLIENT_ID}"
         "&redirect_uri=https://example.com/auth/external/callback"
-        f"&state={state}"
+        f"&state={state}&scope=restapi+offline_access"
     )
 
-    client = await aiohttp_client(hass.http.app)
+    client = await hass_client_no_auth()
     resp = await client.get(f"/auth/external/callback?code=abcd&state={state}")
     assert resp.status == 200
     assert resp.headers["content-type"] == "text/html; charset=utf-8"
