@@ -11,11 +11,13 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components import ssdp, zeroconf
 from homeassistant.const import CONF_HOST, CONF_TOKEN
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import homeassistant.helpers.config_validation as cv
 from homeassistant.util.json import load_json, save_json
 
-from .const import DOMAIN
+from .const import CONF_SOCKET_PORT, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,6 +45,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # For discovery integration import
         self.discovery_conf: dict
         self.device_id: str
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> NanoleafOptionsFlowHandler:
+        """Return the Nanoleaf options flow."""
+        return NanoleafOptionsFlowHandler(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -240,3 +250,32 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_TOKEN: self.nanoleaf.auth_token,
             },
         )
+
+
+class NanoleafOptionsFlowHandler(config_entries.OptionsFlow):
+    """Nanoleaf options flow."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage the options."""
+        if user_input is None:
+            configured_port: int | None = self.config_entry.options.get(
+                CONF_SOCKET_PORT
+            )
+            return self.async_show_form(
+                step_id="init",
+                data_schema=vol.Schema(
+                    {
+                        vol.Optional(
+                            CONF_SOCKET_PORT,
+                            description={"suggested_value": configured_port},
+                        ): cv.port
+                    }
+                ),
+            )
+        return self.async_create_entry(title="", data=user_input)

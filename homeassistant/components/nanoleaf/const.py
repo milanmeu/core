@@ -1,3 +1,31 @@
 """Constants for Nanoleaf integration."""
+from aionanoleaf.layout import (
+    CANVAS_CONTROL_SQUARE_MASTER,
+    CANVAS_CONTROL_SQUARE_PASSIVE,
+    CANVAS_SQUARE,
+    ELEMENTS_HEXAGONS,
+    ELEMENTS_HEXAGONS_CORNER,
+    SHAPES_CONTROLLER,
+    SHAPES_HEXAGON,
+    SHAPES_MINI_TRIANGLE,
+    SHAPES_TRIANGLE,
+)
 
 DOMAIN = "nanoleaf"
+
+CONF_SOCKET_PORT = "socket_port"
+
+SUPPORTED_TOUCH_DEVICE_MODELS = {"NL29", "NL42", "NL52"}
+
+UNSUPPORTED_TOUCH_PANEL_MODELS = {SHAPES_CONTROLLER}
+
+PANEL_SHAPE_ICON = {
+    CANVAS_SQUARE: "mdi:square",
+    CANVAS_CONTROL_SQUARE_MASTER: "mdi:square",
+    CANVAS_CONTROL_SQUARE_PASSIVE: "mdi:square",
+    SHAPES_HEXAGON: "mdi:hexagon",
+    SHAPES_TRIANGLE: "mdi:triangle",
+    SHAPES_MINI_TRIANGLE: "mdi:triangle",
+    ELEMENTS_HEXAGONS: "mdi:hexagon",
+    ELEMENTS_HEXAGONS_CORNER: "mdi:hexagon",
+}
