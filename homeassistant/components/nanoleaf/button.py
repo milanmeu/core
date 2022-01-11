@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NanoleafEntryData
 from .const import DOMAIN
-from .entity import NanoleafEntity
+from .entity import NanoleafDeviceEntity
 
 
 async def async_setup_entry(
@@ -21,7 +21,7 @@ async def async_setup_entry(
     async_add_entities([NanoleafIdentifyButton(entry_data.device)])
 
 
-class NanoleafIdentifyButton(NanoleafEntity, ButtonEntity):
+class NanoleafIdentifyButton(NanoleafDeviceEntity, ButtonEntity):
     """Representation of a Nanoleaf identify button."""
 
     def __init__(self, nanoleaf: Nanoleaf) -> None:

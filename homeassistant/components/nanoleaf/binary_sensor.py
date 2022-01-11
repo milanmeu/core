@@ -12,7 +12,6 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NanoleafEntryData
@@ -22,6 +21,7 @@ from .const import (
     SUPPORTED_TOUCH_DEVICE_MODELS,
     UNSUPPORTED_TOUCH_PANEL_MODELS,
 )
+from .entity import NanoleafPanelEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,27 +47,17 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class NanoleafPanelBinarySensorEntity(BinarySensorEntity, ABC):
+class NanoleafPanelBinarySensorEntity(NanoleafPanelEntity, BinarySensorEntity, ABC):
     """Representation of a Nanoleaf panel binary sensor entity."""
 
-    _attr_should_poll = False
     _attr_is_on = False
     _reset_task: Task | None = None
 
     def __init__(self, nanoleaf: Nanoleaf, panel: Panel, sensor_type: str) -> None:
         """Initialize an Nanoleaf binary sensor."""
-        self._nanoleaf = nanoleaf
-        self._panel = panel
+        super().__init__(nanoleaf, panel)
         self._attr_unique_id = f"{nanoleaf.serial_no}_{panel.id}_{sensor_type}"
         self._attr_name = f"{nanoleaf.name} {panel.shape.name} {panel.id} {sensor_type}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"{self._nanoleaf.serial_no}_{self._panel.id}")},
-            via_device=(DOMAIN, self._nanoleaf.serial_no),
-            name=f"{self._nanoleaf.name} {self._panel.shape.name} {self._panel.id}",
-            manufacturer=self._nanoleaf.manufacturer,
-            model=self._panel.shape.name,
-            sw_version=self._nanoleaf.firmware_version,
-        )
 
     @property
     def icon(self) -> str:

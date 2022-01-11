@@ -37,7 +37,7 @@ from homeassistant.util.color import (
 
 from . import NanoleafEntryData
 from .const import DOMAIN
-from .entity import NanoleafEntity
+from .entity import NanoleafDeviceEntity
 
 RESERVED_EFFECTS = ("*Solid*", "*Static*", "*Dynamic*")
 DEFAULT_NAME = "Nanoleaf"
@@ -85,7 +85,7 @@ async def async_setup_entry(
     async_add_entities([NanoleafLight(entry_data.device)])
 
 
-class NanoleafLight(NanoleafEntity, LightEntity):
+class NanoleafLight(NanoleafDeviceEntity, LightEntity):
     """Representation of a Nanoleaf Light."""
 
     def __init__(self, nanoleaf: Nanoleaf) -> None:
