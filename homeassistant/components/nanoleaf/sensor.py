@@ -63,7 +63,49 @@ async def async_setup_entry(
             entities.append(PanelSensorEntity(nanoleaf, panel, description))
         for description in SHAPE_SENSOR_TYPES:
             entities.append(ShapeSensorEntity(nanoleaf, panel, description))
+        entities.append(TouchSensorEntity(nanoleaf, panel))
     async_add_entities(entities)
+
+
+class TouchSensorEntity(NanoleafPanelEntity, SensorEntity):
+    """Representation of a Nanoleaf touch sensor."""
+
+    def __init__(self, nanoleaf: Nanoleaf, panel: Panel, sensor_type: str) -> None:
+        """Initialize an Nanoleaf binary sensor."""
+        super().__init__(nanoleaf, panel)
+        self._attr_unique_id = f"{nanoleaf.serial_no}_{panel.id}_{sensor_type}"
+        self._attr_name = f"{nanoleaf.name} {panel.shape.name} {panel.id} {sensor_type}"
+
+    async def _async_handle_touch(self, touch_type: str) -> None:
+        """Handle panel touch event."""
+
+    def _should_reset(self) -> bool:
+        """Return if entity state should reset."""
+        return self._attr_native_value != 0
+
+    def _reset_value(self) -> None:
+        """Reset entity state."""
+        self._attr_native_value = 0
+
+
+
+class NanoleafPanelBinarySensorEntity(NanoleafTouchEntity, BinarySensorEntity):
+    """Representation of a Nanoleaf panel binary sensor entity."""
+
+    _attr_native_value = False
+    _should_not_reset_state = "off"
+
+    def _reset_entity(self) -> None:
+        """Reset entity state."""
+        self._attr_is_on = False
+
+    def __init__(self, nanoleaf: Nanoleaf, panel: Panel) -> None:
+        """Initialize an Nanoleaf panel touch binary sensor."""
+        super().__init__(nanoleaf, panel, "Touch")
+
+    def _set_state(self, touch_type: str) -> None:
+        """Set the entity state."""
+        self._attr_is_on = touch_type == "Hold" or touch_type == "Down"
 
 
 class NanoleafSensorEntity(NanoleafPanelEntity, SensorEntity):
@@ -101,3 +143,4 @@ class ShapeSensorEntity(NanoleafSensorEntity):
         """Return the native value of the sensor."""
         value: str | int | None = getattr(self._panel.shape, self._description.key)
         return value
+
