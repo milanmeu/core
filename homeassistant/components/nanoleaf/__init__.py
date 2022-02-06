@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from datetime import timedelta
 
 from aionanoleaf import EffectsEvent, InvalidToken, Nanoleaf, StateEvent, Unavailable
 from aionanoleaf.events import TouchStreamEvent
+from apprise import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_TOKEN, Platform
@@ -13,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import CONF_SOCKET_PORT, DOMAIN
 
@@ -24,6 +27,7 @@ class NanoleafEntryData:
     """Class for sharing data within the Nanoleaf integration."""
 
     device: Nanoleaf
+    coordinator: DataUpdateCoordinator
     event_listener: asyncio.Task
 
 
@@ -32,12 +36,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     nanoleaf = Nanoleaf(
         async_get_clientsession(hass), entry.data[CONF_HOST], entry.data[CONF_TOKEN]
     )
-    try:
-        await nanoleaf.get_info()
-    except Unavailable as err:
-        raise ConfigEntryNotReady from err
-    except InvalidToken as err:
-        raise ConfigEntryAuthFailed from err
+
+    async def async_get_state() -> None:
+        """Get the state of the device."""
+        try:
+            await nanoleaf.get_info()
+        except Unavailable as err:
+            raise ConfigEntryNotReady from err
+        except InvalidToken as err:
+            raise ConfigEntryAuthFailed from err
+
+    coordinator = DataUpdateCoordinator(
+        hass,
+        logging.getLogger(__name__),
+        name=nanoleaf.serial_no,
+        update_interval=timedelta(minutes=1),
+        update_method=async_get_state,
+    )
+
+    coordinator.async_config_entry_first_refresh()
 
     async def update_light_state(event: StateEvent | EffectsEvent) -> None:
         """Receive state and effect event."""
@@ -61,7 +78,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = NanoleafEntryData(
-        nanoleaf, event_listener
+        nanoleaf, coordinator, event_listener
     )
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)

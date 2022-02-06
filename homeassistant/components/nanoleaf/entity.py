@@ -7,35 +7,51 @@ from asyncio.tasks import Task
 from typing import Any
 
 from aionanoleaf import Nanoleaf, Panel
-
-from homeassistant.const import ATTR_IDENTIFIERS, ATTR_MODEL, ATTR_NAME, ATTR_VIA_DEVICE
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
+from homeassistant.core import callback
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from .const import DOMAIN
 
 
-class NanoleafEnity(Entity):
+class NanoleafEnity(CoordinatorEntity):
     """Representation of a Nanoleaf entity."""
 
-    def __init__(self, nanoleaf: Nanoleaf) -> None:
+    def __init__(self, nanoleaf: Nanoleaf, coordinator: DataUpdateCoordinator) -> None:
         """Initialize an Nanoleaf entity."""
         self._nanoleaf = nanoleaf
+        self._coordinator = coordinator
         self._attr_device_info: DeviceInfo = DeviceInfo(
             manufacturer=nanoleaf.manufacturer,
             sw_version=nanoleaf.firmware_version,
             configuration_url=f"http://{nanoleaf.host}",
         )
 
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self._attr_available
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = self._coordinator.last_update_success
+        self.async_write_ha_state()
+
 
 class NanoleafDeviceEntity(NanoleafEnity):
     """Representation of a Nanoleaf device entity."""
 
-    def __init__(self, nanoleaf: Nanoleaf) -> None:
+    def __init__(self, nanoleaf: Nanoleaf, coordinator: DataUpdateCoordinator) -> None:
         """Initialize an Nanoleaf entity."""
-        super().__init__(nanoleaf)
-        self._attr_device_info[ATTR_IDENTIFIERS] = {(DOMAIN, nanoleaf.serial_no)}
-        self._attr_device_info[ATTR_NAME] = nanoleaf.name
-        self._attr_device_info[ATTR_MODEL] = nanoleaf.model
+        super().__init__(nanoleaf, coordinator)
+        self._attr_device_info.update(
+            DeviceInfo(
+                identifiers={(DOMAIN, nanoleaf.serial_no)},
+                name=nanoleaf.name,
+                model=nanoleaf.model,
+            )
+        )
 
 
 class NanoleafPanelEntity(NanoleafEnity):
@@ -43,30 +59,30 @@ class NanoleafPanelEntity(NanoleafEnity):
 
     _attr_should_poll = False
 
-    def __init__(self, nanoleaf: Nanoleaf, panel: Panel) -> None:
+    def __init__(self, nanoleaf: Nanoleaf, coordinator: DataUpdateCoordinator, panel: Panel) -> None:
         """Initialize an Nanoleaf panel entity."""
-        super().__init__(nanoleaf)
+        super().__init__(nanoleaf, coordinator)
         self._nanoleaf = nanoleaf
         self._panel = panel
-        self._attr_device_info[ATTR_IDENTIFIERS] = {
-            (DOMAIN, f"{self._nanoleaf.serial_no}_{self._panel.id}")
-        }
-        self._attr_device_info[
-            ATTR_NAME
-        ] = f"{self._nanoleaf.name} {self._panel.shape.name} {self._panel.id}"
-        self._attr_device_info[ATTR_MODEL] = self._panel.shape.name
-        self._attr_device_info[ATTR_VIA_DEVICE] = (DOMAIN, self._nanoleaf.serial_no)
+        self._attr_device_info.update(
+            DeviceInfo(
+                identifiers={(DOMAIN, f"{nanoleaf.serial_no}_{panel.id}")},
+                via_device=(DOMAIN, nanoleaf.serial_no),
+                name=f"{nanoleaf.name} {panel.shape.name} {panel.id}",
+                model=panel.shape.name,
+            )
+        )
 
 
-class NanoleafTouchEntity(NanoleafPanelEntity, ABC):
+class NanoleafPanelTouchEntity(NanoleafPanelEntity, ABC):
     """Representation of a Nanoleaf touch sensor."""
 
     _reset_task: Task | None = None
     _should_not_reset_state: Any
 
-    def __init__(self, nanoleaf: Nanoleaf, panel: Panel, sensor_type: str) -> None:
+    def __init__(self, nanoleaf: Nanoleaf, coordinator: DataUpdateCoordinator, panel: Panel, sensor_type: str) -> None:
         """Initialize an Nanoleaf binary sensor."""
-        super().__init__(nanoleaf, panel)
+        super().__init__(nanoleaf, coordinator, panel)
         self._attr_unique_id = f"{nanoleaf.serial_no}_{panel.id}_{sensor_type}"
         self._attr_name = f"{nanoleaf.name} {panel.shape.name} {panel.id} {sensor_type}"
 

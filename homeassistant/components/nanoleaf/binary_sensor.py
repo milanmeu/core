@@ -9,6 +9,7 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from . import NanoleafEntryData
 from .const import (
@@ -17,7 +18,7 @@ from .const import (
     SUPPORTED_TOUCH_DEVICE_MODELS,
     UNSUPPORTED_TOUCH_PANEL_MODELS,
 )
-from .entity import NanoleafTouchEntity
+from .entity import NanoleafPanelTouchEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,12 +39,12 @@ async def async_setup_entry(
     entities: list[NanoleafPanelBinarySensorEntity] = []
     for panel in nanoleaf.panels:
         if panel.shape not in UNSUPPORTED_TOUCH_PANEL_MODELS:
-            entities.append(NanoleafPanelTouch(nanoleaf, panel))
-            entities.append(NanoleafPanelHover(nanoleaf, panel))
+            entities.append(NanoleafPanelTouch(nanoleaf, entry_data.coordinator, panel))
+            entities.append(NanoleafPanelHover(nanoleaf, entry_data.coordinator, panel))
     async_add_entities(entities)
 
 
-class NanoleafPanelBinarySensorEntity(NanoleafTouchEntity, BinarySensorEntity):
+class NanoleafPanelBinarySensorEntity(NanoleafPanelTouchEntity, BinarySensorEntity):
     """Representation of a Nanoleaf panel binary sensor entity."""
 
     _attr_is_on = False
@@ -63,9 +64,9 @@ class NanoleafPanelBinarySensorEntity(NanoleafTouchEntity, BinarySensorEntity):
 class NanoleafPanelTouch(NanoleafPanelBinarySensorEntity):
     """Representation of a Nanoleaf panel touch binary sensor entity."""
 
-    def __init__(self, nanoleaf: Nanoleaf, panel: Panel) -> None:
+    def __init__(self, nanoleaf: Nanoleaf, coordinator: DataUpdateCoordinator, panel: Panel) -> None:
         """Initialize an Nanoleaf panel touch binary sensor."""
-        super().__init__(nanoleaf, panel, "Touch")
+        super().__init__(nanoleaf, coordinator, panel, "Touch")
 
     def _set_state(self, touch_type: str) -> None:
         """Set the entity state."""
@@ -75,9 +76,9 @@ class NanoleafPanelTouch(NanoleafPanelBinarySensorEntity):
 class NanoleafPanelHover(NanoleafPanelBinarySensorEntity):
     """Representation of a Nanoleaf panel hover binary sensor entity."""
 
-    def __init__(self, nanoleaf: Nanoleaf, panel: Panel) -> None:
+    def __init__(self, nanoleaf: Nanoleaf, coordinator: DataUpdateCoordinator, panel: Panel) -> None:
         """Initialize an Nanoleaf panel hover binary sensor."""
-        super().__init__(nanoleaf, panel, "Hover")
+        super().__init__(nanoleaf, coordinator, panel, "Hover")
 
     def _set_state(self, touch_type: str) -> None:
         """Set the entity state."""
